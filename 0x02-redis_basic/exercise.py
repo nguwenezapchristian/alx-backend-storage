@@ -3,6 +3,10 @@ import redis
 import uuid
 from typing import Union, Callable, Optional
 from functools import wraps
+"""
+Exercise
+Write a Redis client that counts the number of calls to a particular method
+"""
 
 
 def count_calls(method: Callable) -> Callable:
