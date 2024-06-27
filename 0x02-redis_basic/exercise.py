@@ -4,6 +4,7 @@ from typing import Union, Callable, Optional
 from functools import wraps
 """ Exercise """
 
+
 def count_calls(method: Callable) -> Callable:
     """
     Decorator that counts the number of calls to a method.
@@ -22,6 +23,7 @@ def call_history(method: Callable) -> Callable:
     """
     @wraps(method)
     def wrapper(self, *args, **kwargs):
+        """Store the history of inputs and outputs"""
         input_key = f"{method.__qualname__}:inputs"
         output_key = f"{method.__qualname__}:outputs"
 
@@ -36,18 +38,27 @@ def call_history(method: Callable) -> Callable:
 
 
 class Cache:
+    """Retrieving lists"""
+
     def __init__(self):
+        """Initializing redis"""
         self._redis = redis.Redis()
         self._redis.flushdb()
 
     @call_history
     @count_calls
     def store(self, data: Union[str, bytes, int, float]) -> str:
+        """Storing data in redis"""
         key = str(uuid.uuid4())
         self._redis.set(key, data)
         return key
 
-    def get(self, key: str, fn: Optional[Callable] = None) -> Union[str, bytes, int, float, None]:
+    def get(self, key: str, fn: Optional[Callable] = None) -> Union[str,
+                                                                    bytes,
+                                                                    int,
+                                                                    float,
+                                                                    None]:
+        """Retrieving data from redis"""
         data = self._redis.get(key)
         if data is None:
             return None
@@ -56,9 +67,11 @@ class Cache:
         return data
 
     def get_str(self, key: str) -> Optional[str]:
+        """Retrieving data from redis"""
         return self.get(key, fn=lambda d: d.decode('utf-8'))
 
     def get_int(self, key: str) -> Optional[int]:
+        """Retrieving data from redis"""
         return self.get(key, fn=int)
 
 

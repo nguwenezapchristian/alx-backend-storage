@@ -14,7 +14,7 @@ def count_requests(method: Callable) -> Callable:
     """
     @wraps(method)
     def wrapper(url: str, *args, **kwargs) -> str:
-        # Increment the counter for the URL
+        """ Increment the counter for the URL """
         r.incr(f"count:{url}")
         return method(url, *args, **kwargs)
     return wrapper
@@ -26,15 +26,15 @@ def cache_response(method: Callable) -> Callable:
     """
     @wraps(method)
     def wrapper(url: str, *args, **kwargs) -> str:
-        # Check if the URL is already cached
+        """ Check if the URL is already cached """
         cached_response = r.get(f"cache:{url}")
         if cached_response:
             return cached_response.decode('utf-8')
 
-        # If not cached, call the original method
+        """ If not cached, call the original method """
         response = method(url, *args, **kwargs)
 
-        # Cache the response with an expiration time of 10 seconds
+        """ Cache the response with an expiration time of 10 seconds """
         r.setex(f"cache:{url}", 10, response)
         return response
     return wrapper
