@@ -1,12 +1,7 @@
-#!/usr/bin/env python3
 import redis
 import uuid
 from typing import Union, Callable, Optional
 from functools import wraps
-"""
-Exercise
-Write a Redis client that counts the number of calls to a particular method
-"""
 
 
 def count_calls(method: Callable) -> Callable:
@@ -15,12 +10,28 @@ def count_calls(method: Callable) -> Callable:
     """
     @wraps(method)
     def wrapper(self, *args, **kwargs):
-        """ Construct the key for the method call count """
         key = f"{method.__qualname__}_calls"
-        """ Increment the count in Redis """
         self._redis.incr(key)
-        """ Call the original method """
         return method(self, *args, **kwargs)
+    return wrapper
+
+
+def call_history(method: Callable) -> Callable:
+    """
+    Decorator to store the history of inputs and outputs for a function.
+    """
+    @wraps(method)
+    def wrapper(self, *args, **kwargs):
+        input_key = f"{method.__qualname__}:inputs"
+        output_key = f"{method.__qualname__}:outputs"
+
+        self._redis.rpush(input_key, str(args))
+
+        result = method(self, *args, **kwargs)
+
+        self._redis.rpush(output_key, str(result))
+
+        return result
     return wrapper
 
 
@@ -29,6 +40,7 @@ class Cache:
         self._redis = redis.Redis()
         self._redis.flushdb()
 
+    @call_history
     @count_calls
     def store(self, data: Union[str, bytes, int, float]) -> str:
         key = str(uuid.uuid4())
@@ -48,3 +60,22 @@ class Cache:
 
     def get_int(self, key: str) -> Optional[int]:
         return self.get(key, fn=int)
+
+
+def replay(method: Callable):
+    """
+    Function to display the history of calls of a particular function.
+    """
+    r = redis.Redis()
+
+    input_key = f"{method.__qualname__}:inputs"
+    output_key = f"{method.__qualname__}:outputs"
+
+    inputs = r.lrange(input_key, 0, -1)
+    outputs = r.lrange(output_key, 0, -1)
+
+    print(f"{method.__qualname__} was called {len(inputs)} times:")
+
+    for inp, outp in zip(inputs, outputs):
+        print(
+            f"{method.__qualname__}(*{inp.decode('utf-8')}) -> {outp.decode('utf-8')}")
