@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 """ Writing strings to Redis with Python """
 from typing import List, Union
 import redis
@@ -13,7 +13,7 @@ class Cache:
         self._redis = redis.Redis()
         self._redis.flushdb()
 
-    def store(self, data: List[Union[str, int, float, bytes]]) -> str:
+    def store(self, data: Union[str, int, float, bytes]) -> str:
         """ Store data in Redis """
         key = str(uuid.uuid4())
         self._redis.mset({key: data})
