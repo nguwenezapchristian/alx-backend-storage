@@ -1,29 +1,37 @@
 #!/usr/bin/env python3
-""" Writing strings to Redis with Python """
-from typing import Callable, Optional, Union
 import redis
 import uuid
+from typing import Union, Callable, Optional
+from functools import wraps
+
+
+def count_calls(method: Callable) -> Callable:
+    """
+    Decorator that counts the number of calls to a method.
+    """
+    @wraps(method)
+    def wrapper(self, *args, **kwargs):
+        """ Construct the key for the method call count """
+        key = f"{method.__qualname__}_calls"
+        """ Increment the count in Redis """
+        self._redis.incr(key)
+        """ Call the original method """
+        return method(self, *args, **kwargs)
+    return wrapper
 
 
 class Cache:
-    """ Class Cache """
-
     def __init__(self):
-        """ Constructor """
         self._redis = redis.Redis()
         self._redis.flushdb()
 
+    @count_calls
     def store(self, data: Union[str, bytes, int, float]) -> str:
-        """ Store data in Redis """
         key = str(uuid.uuid4())
-        self._redis.mset({key: data})
+        self._redis.set(key, data)
         return key
 
-    def get(self, key: str, fn: Optional[Callable] = None) -> Union[str,
-                                                                    bytes,
-                                                                    int,
-                                                                    float, None]:
-        """ Get data from Redis """
+    def get(self, key: str, fn: Optional[Callable] = None) -> Union[str, bytes, int, float, None]:
         data = self._redis.get(key)
         if data is None:
             return None
@@ -32,9 +40,7 @@ class Cache:
         return data
 
     def get_str(self, key: str) -> Optional[str]:
-        """ Get string from Redis """
-        return self.get(key, fn=lambda x: x.decode('utf-8'))
+        return self.get(key, fn=lambda d: d.decode('utf-8'))
 
     def get_int(self, key: str) -> Optional[int]:
-        """ Get int from Redis """
         return self.get(key, fn=int)
