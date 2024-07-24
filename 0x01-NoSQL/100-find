@@ -3,6 +3,7 @@
 
 from pymongo import MongoClient
 
+
 def regex_filter():
     """
     Lists all documents with name starting with 'Holberton' in the collection school.
@@ -14,6 +15,7 @@ def regex_filter():
     cursor = collection.find({"name": {"$regex": "^Holberton"}})
     for document in cursor:
         print(document)
+
 
 if __name__ == "__main__":
     regex_filter()
