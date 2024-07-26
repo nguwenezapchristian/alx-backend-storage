@@ -1,1 +1,8 @@
-db.school.find({name: / ^Holberton / })
+#!/bin/bash
+
+# This script connects to the MongoDB database and finds all documents
+# in the 'school' collection where the 'name' field starts with 'Holberton'.
+
+mongo "$1" --eval '
+db.school.find({ name: { $regex: "^Holberton" } }).forEach(printjson);
+'
