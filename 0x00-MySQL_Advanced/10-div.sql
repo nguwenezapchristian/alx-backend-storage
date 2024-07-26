@@ -1,10 +1,11 @@
--- Create the SafeDiv function
-CREATE FUNCTION SafeDiv(a INT, b INT)
-RETURNS INT
+-- Create a function to safely divide two numbers
+DROP FUNCTION IF EXISTS SafeDiv;
+
+DELIMITER $$
+
+CREATE FUNCTION SafeDiv(a INT, b INT) RETURNS FLOAT
 BEGIN
-    IF b <> 0 THEN
-        RETURN a / b;
-    ELSE
-        RETURN 0;
-    END IF;
-END;
+    RETURN IF(b = 0, 0, a / b);
+END$$
+
+DELIMITER ;
