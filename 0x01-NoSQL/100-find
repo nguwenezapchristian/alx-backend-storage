@@ -1,33 +1,8 @@
 #!/bin/bash
 
-# This script connects to a MongoDB database and retrieves
-# records from the 'school' collection that match a specific
-# condition.
-db_name="$1"
+# The MongoDB query
+query='db.school.find({ name: { $regex: /^Holberton/i } }).forEach(printjson);'
 
-# Usage: ./100-find.sh <database_name>
-
-# The script uses the MongoDB shell to execute a MongoDB command.
-# It connects to the specified database and uses the 'school'
-# collection to find records that match the condition:
-# { name: /^Holberton/ }
-# This condition matches records where the 'name' field starts with
-# 'Holberton'.
-
-# The script takes one argument: the name of the MongoDB database.
-# Example: ./100-find.sh school
-
-# Check if the script is run with the correct number of arguments
-if [ "$#" -ne 1 ]; then
-    echo "Usage: ./100-find.sh <database_name>"
-    exit 1
-fi
-mongo "$db_name" <<EOF
-use school
-# Execute the MongoDB command using the MongoDB shell
-db.school.find({ name: /^Holberton/ })
-# Use the 'school' database
-EOF
-
-# Find records in the 'school' collection that match the condition
-
+# Run the MongoDB query
+# The database name will be passed as an option to the mongo command
+mongo "$@" --quiet --eval "$query"
