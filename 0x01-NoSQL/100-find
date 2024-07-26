@@ -1,8 +1,5 @@
-#!/bin/bash
+// 100-find
+// This script lists all documents with a name starting with "Holberton" in the collection "school"
 
-# The MongoDB query
-query='db.school.find({ name: { $regex: /^Holberton/i } }).forEach(printjson);'
-
-# Run the MongoDB query
-# The database name will be passed as an option to the mongo command
-mongo "$@" --quiet --eval "$query"
+db = db.getSiblingDB("my_db");
+db.school.find({ name: /^Holberton/ }).forEach(printjson);
